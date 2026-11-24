@@ -105,8 +105,9 @@ Override one for another environment with `WP_<HANDLE>_USER` and `WP_<HANDLE>_PA
   step you write.
 - **What a scenario changes comes back.** The pack's steps put back what they change when the scenario ends: an
   enrolment and the order of $0.00 a free enrolment records, the progress opening a lesson records, a quiz's attempts
-  and results, a course's status; a course, lesson or quiz a scenario makes goes for good. Start from a known state
-  with the Givens (`Given there is no course "Webship test course"`), and name what you make "Webship test …".
+  and results, the plugin's history rows of them (when every learner of the course is an account of the suite), a
+  course's status; a course, lesson or quiz a scenario makes goes for good. Start from a known state with the Givens
+  (`Given there is no course "Webship test course"`), and name what you make "Webship test …".
 - **The sample courses are the site's own data**: "Webship Testing Basics", "Webship Advanced Testing", their lessons,
   the quiz "Basics quiz" and the student's enrolment are read by scenarios, never changed for good.
 - **Everything runs in the container.** Never `npx cucumber-js` or `npx playwright` on the host for a project.

@@ -178,6 +178,10 @@ settings" and "Learning settings".
   order for good.
 - **Opening a lesson records progress.** An enrolled account that only opens a lesson has an item "in progress" on
   its course; the steps take it away when the scenario ends.
+- **The plugin keeps a history.** Every enrolment and every attempt writes a history row, which the plugin's own
+  "Assign" and "Unassign" keep; the steps remove it with the plugin's "Reset course progress" when every learner of
+  the course is an account of the users registry, and say so when one is not: give a course of the suite no other
+  learner.
 - **The plugin asks first.** Completing a lesson, finishing a quiz and starting a retake each open a question ("Are
   you sure?"), in one of two kinds of box; the steps answer yes and wait for the page that follows.
 - **The quiz fills by script.** Its questions come after the page loaded, a page at a time ("#page-2"); the steps find
