@@ -355,10 +355,10 @@ function webship_counts() {
 }
 
 /**
- * What the plugin's own tables keep of what WordPress deleted from outside the plugin's screens. An account deleted
- * with WP-CLI takes its posts along (the instructor's courses, lessons, quizzes and questions), and the plugin's tables
- * keep the account's enrolments, progress and history, its orders, the sections of its courses and their items, and
- * the questions of its quizzes. The Workspace's cancel of the test users runs this once the accounts are gone.
+ * What the plugin keeps of what WordPress deleted from outside the plugin's screens. An account deleted with WP-CLI
+ * takes its courses along, and the plugin keeps the account's enrolments, progress and history, its orders, the
+ * sections of its courses and their items, and its lessons, quizzes and questions (types WordPress does not delete
+ * with an author). The Workspace's cancel of the test users runs this once the accounts are gone.
  */
 function webship_orphans() {
 	global $wpdb;
@@ -381,6 +381,25 @@ function webship_orphans() {
 	$sections = $wpdb->learnpress_sections;
 	$gone['sections'] = (int) $wpdb->query( "DELETE s FROM {$sections} s LEFT JOIN {$wpdb->posts} p ON p.ID = s.section_course_id WHERE p.ID IS NULL" );
 	$gone['section items'] = (int) $wpdb->query( "DELETE si FROM {$wpdb->learnpress_section_items} si LEFT JOIN {$sections} s ON s.section_id = si.section_id LEFT JOIN {$wpdb->posts} p ON p.ID = si.item_id WHERE s.section_id IS NULL OR p.ID IS NULL" );
+	// WordPress deletes an account's courses with it, but not its lessons, quizzes and questions (their types have no
+	// author support): those of an account that is gone go when no course uses them any more.
+	$items = $wpdb->get_col( $wpdb->prepare(
+		"SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->users} u ON u.ID = p.post_author LEFT JOIN {$wpdb->learnpress_section_items} si ON si.item_id = p.ID WHERE p.post_type IN (%s, %s) AND p.post_author > 0 AND u.ID IS NULL AND si.item_id IS NULL",
+		LP_LESSON_CPT,
+		LP_QUIZ_CPT
+	) );
+	foreach ( $items as $item_id ) {
+		webship_delete_item( (int) $item_id );
+	}
+	$gone['lessons and quizzes'] = count( $items );
+	$questions = $wpdb->get_col( $wpdb->prepare(
+		"SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->users} u ON u.ID = p.post_author LEFT JOIN {$wpdb->learnpress_quiz_questions} qq ON qq.question_id = p.ID WHERE p.post_type = %s AND p.post_author > 0 AND u.ID IS NULL AND qq.question_id IS NULL",
+		LP_QUESTION_CPT
+	) );
+	foreach ( $questions as $question_id ) {
+		webship_delete_question( (int) $question_id );
+	}
+	$gone['questions'] = count( $questions );
 	$gone['quiz questions'] = (int) $wpdb->query( "DELETE qq FROM {$wpdb->learnpress_quiz_questions} qq LEFT JOIN {$wpdb->posts} q ON q.ID = qq.quiz_id LEFT JOIN {$wpdb->posts} p ON p.ID = qq.question_id WHERE q.ID IS NULL OR p.ID IS NULL" );
 	$answers = $wpdb->learnpress_question_answers;
 	$wpdb->query( "DELETE am FROM {$wpdb->learnpress_question_answermeta} am LEFT JOIN {$answers} a ON a.question_answer_id = am.learnpress_question_answer_id LEFT JOIN {$wpdb->posts} p ON p.ID = a.question_id WHERE a.question_answer_id IS NULL OR p.ID IS NULL" );
